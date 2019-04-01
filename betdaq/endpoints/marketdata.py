@@ -60,6 +60,30 @@ class MarketData(BaseEndpoint):
         data = self.process_response(response, date_time_sent, 'EventClassifiers', error_handler=err_sport_markets)
         return parse_deep_markets(listy_mc_list(data.get('data', []))) if data.get('data') else []
 
+    def get_event_sub_tree_no_selections(
+            self, sport_ids, WantDirectDescendentsOnly=Boolean.F.value, WantPlayMarkets=None
+    ):
+        """
+        Get the tree of events and markets for given sports/events.
+
+        :param sport_ids: list of sports for which to return events/markets
+        :param include_selections: whether to include the selections in returned data.
+        :param WantDirectDescendentsOnly: whether to return only direct descendents of the event.
+        :param WantPlayMarkets: whether information about real or play markets should be returned
+        :return: all markets for the given sport, with comp and event data flattened.
+        """
+        date_time_sent = datetime.datetime.utcnow()
+
+        method = 'GetEventSubTreeNoSelections'
+        params = self.client.readonly_types['%sRequest' % method](
+            _value_1=[{'EventClassifierIds': s_id} for s_id in listy_mc_list(sport_ids)],
+            WantDirectDescendentsOnly=WantDirectDescendentsOnly,
+            WantPlayMarkets=WantPlayMarkets,
+        )
+        response = self.request(method, params, secure=False)
+        data = self.process_response(response, date_time_sent, 'EventClassifiers', error_handler=err_sport_markets)
+        return parse_deep_markets(listy_mc_list(data.get('data', []))) if data.get('data') else []
+
     def get_markets(self, market_ids):
         """
         Get detailed information about given market(s).
@@ -150,6 +174,22 @@ class MarketData(BaseEndpoint):
         response = self.request('GetSPEnabledMarketsInformation', {}, secure=False)
         data = self.process_response(response, date_time_sent, 'SPEnabledEvent', error_handler=err_sp_events)
         return data.get('data', [])
+
+    def get_markets_with_sp2(self):
+        """
+        Get information defining which markets are enabled for starting-price orders.
+
+        :return: information on which markets have SP.
+        """
+        response = self.request('GetSPEnabledMarketsInformation', {}, secure=False, raw=True)
+
+        events = response['GetSPEnabledMarketsInformationResponse']['GetSPEnabledMarketsInformationResult']['SPEnabledEvent']
+        data = []
+        for event in events:
+            market_type_ids = int(event['MarketTypeIds']['MarketTypeId'])
+            row = {'eventId': event['@eventId'], 'market_type_ids': market_type_ids}
+            data.append(row)
+        return data
 
     def get_selection_sequence_number(self):
         """

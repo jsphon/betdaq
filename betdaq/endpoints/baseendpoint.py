@@ -1,5 +1,7 @@
 
 import datetime
+
+import xmltodict
 from requests import ConnectionError
 from zeep.helpers import serialize_object
 
@@ -15,17 +17,31 @@ class BaseEndpoint(object):
         """
         self.client = parent
 
-    def request(self, method, params, secure=False):
+    def request(self, method, params, secure=False, raw=False):
         """
         :param method: The endpoint to be requested.
         :param params: Params to be used in request.
         :param secure: Whether the method belongs to the secure or readonly service.
+        :param raw: Whether or not we want to return the raw response
         """
         try:
             if secure:
                 response = self.client.secure_client.service[method](params)
             else:
-                response = self.client.readonly_client.service[method](params)
+                _method = self.client.readonly_client.service[method]
+                if raw:
+                    _method._proxy._client.raw_response=True
+
+                try:
+                    response = _method(params)
+                finally:
+                    if raw:
+                        _method._proxy._client.raw_response = False
+
+                if raw:
+                    result = xmltodict.parse(response.content)
+                    return result['soap:Envelope']['soap:Body']
+
         except ConnectionError:
             raise APIError(None, method, params, 'ConnectionError')
         except Exception as e:
@@ -50,3 +66,29 @@ class BaseEndpoint(object):
             'date_time_sent': date_time_sent,
             'date_time_received': date_time_received,
         }
+
+
+def elem2dict(node):
+    """
+    Convert an lxml.etree node tree into a dict.
+    """
+    result = {}
+
+    for element in node.iterchildren():
+        # Remove namespace prefix
+        key = element.tag.split('}')[1] if '}' in element.tag else element.tag
+
+        # Process element as tree element if the inner XML contains non-whitespace content
+        if element.text and element.text.strip():
+            value = element.text
+        else:
+            value = elem2dict(element)
+
+        print('setting key %s' % key)
+        if key in result:
+            result[key] = [result[key], value]
+        else:
+
+            result[key] = value
+
+    return result
