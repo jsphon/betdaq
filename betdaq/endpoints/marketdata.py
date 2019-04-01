@@ -186,8 +186,9 @@ class MarketData(BaseEndpoint):
         events = response['GetSPEnabledMarketsInformationResponse']['GetSPEnabledMarketsInformationResult']['SPEnabledEvent']
         data = []
         for event in events:
-            market_type_ids = int(event['MarketTypeIds']['MarketTypeId'])
-            row = {'eventId': event['@eventId'], 'market_type_ids': market_type_ids}
+            market_type_ids = listy_mc_list(event['MarketTypeIds']['MarketTypeId'])
+            market_type_ids = [int(x) for x in market_type_ids]
+            row = {'event_id': int(event['@eventId']), 'market_type_ids': market_type_ids}
             data.append(row)
         return data
 
