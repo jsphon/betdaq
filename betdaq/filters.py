@@ -3,10 +3,21 @@ from betdaq.utils import clean_locals
 from betdaq.enums import Boolean, WithdrawRepriceOption, OrderKillType
 
 
-def create_order(SelectionId, Stake, Price, Polarity, ExpectedSelectionResetCount, ExpectedWithdrawalSequenceNumber,
-                 CancelOnInRunning=Boolean.T, CancelIfSelectionReset=Boolean.T, ExpiresAt=None,
-                 WithdrawalRepriceOption=WithdrawRepriceOption.Cancel, KillType=OrderKillType.FillOrKillDontCancel,
-                 FillOrKillThreshold=0.0, PunterReferenceNumber=1):
+def create_order(
+        SelectionId,
+        Stake,
+        Price,
+        Polarity,
+        ExpectedSelectionResetCount,
+        ExpectedWithdrawalSequenceNumber,
+        CancelOnInRunning=Boolean.T.value,
+        CancelIfSelectionReset=Boolean.T.value,
+        ExpiresAt=None,
+        WithdrawalRepriceOption=WithdrawRepriceOption.Cancel.value,
+        KillType=OrderKillType.FillOrKillDontCancel.value,
+        FillOrKillThreshold=0.0,
+        PunterReferenceNumber=1
+    ):
     """
     Create an order to send to exchange.
     
