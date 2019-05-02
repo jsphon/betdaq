@@ -65,7 +65,8 @@ def check_status_code(response, codes=None):
     codes = codes or [0]
     response_code = response.get('ReturnStatus', {}).get('Code')
     if response_code not in codes:
-        raise eval(ErrorMap(response_code).name)
+        error_name = ErrorMap(response_code).name
+        raise Exception(error_name)
 
 
 def floatify(deci):
