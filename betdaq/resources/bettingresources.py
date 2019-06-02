@@ -72,7 +72,7 @@ def parse_orders(order):
         'runner_reset_count': order.get('ExpectedSelectionResetCount'),
         'in_play': order.get('IsCurrentlyInRunning'),
         'order_fill_type': OrderKillType(int(order.get('OrderFillType'))).name if order.get('OrderFillType') else None,
-        'fill_or_kill_threshold': order.get('FillOrKillThreshold'),
+        'fill_or_kill_threshold': floatify(order.get('FillOrKillThreshold')),
         'cancel_on_in_running': order.get('CancelOnInRunning'),
         'cancel_if_selection_reset': order.get('CancelIfSelectionReset'),
         'commission_base_rate': floatify(order.get('PunterCommissionBasis')),
